@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  app:
+    image: github-system-tests:latest
+    ports:
+     - '80:80'
+    environment:
+      SERVER_PORT: 80
+      RUST_LOG: debug
+      LOG_FORMAT: json

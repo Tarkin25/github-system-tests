@@ -1,0 +1,15 @@
+[package]
+name = "github-system-tests"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.70"
+axum = "0.6.15"
+config = "0.13.3"
+serde = { version = "1.0.160", features = ["derive"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16", features = ["json", "env-filter"] }
+dotenv = "0.15.0"
