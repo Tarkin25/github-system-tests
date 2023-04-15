@@ -10,13 +10,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  system-tests:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - run: cargo build
+    - env:
+        SERVER_PORT: 8081
+      run: target/debug/github-system-tests &> /dev/null &
+    - run: cd system-tests && newman run github-system-tests.postman_collection.json -e system-test.postman_environment.json
