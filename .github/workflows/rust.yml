@@ -16,7 +16,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - run: cargo build
+    - run: docker run --rm -d --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:11-alpine
+    - run: sleep 30
+    - run: docker logs postgres
     - env:
+        DATABASE.URL: postgres://postgres:postgres@localhost:5432/postgres
         SERVER_PORT: 8081
-      run: target/debug/github-system-tests &> /dev/null &
-    - run: cd system-tests && newman run github-system-tests.postman_collection.json -e system-test.postman_environment.json
+        RUST_LOG: debug
+      timeout-minutes: 5
+      run: target/debug/github-system-tests &> ./system-test.log &
+    - working-directory: system-tests
+      run: newman run github-system-tests.postman_collection.json -e system-test.postman_environment.json
+    - run: cat system-test.log

@@ -1,8 +1,0 @@
-version: '3.8'
-services:
-  newman:
-    image: postman/newman:alpine
-    container_name: newman
-    command: run /etc/newman/github-system-tests.postman_collection.json -e /etc/newman/system-test.postman_environment.json
-    volumes:
-     - ./:/etc/newman:ro

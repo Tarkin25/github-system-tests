@@ -1,8 +1,9 @@
 use std::net::SocketAddr;
 
 use anyhow::Context;
-use axum::{routing::get, Router};
+use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use configuration::{init_logging, Configuration};
+use sqlx::PgPool;
 
 mod configuration;
 
@@ -11,10 +12,11 @@ async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
     let config = Configuration::new()?;
     init_logging(&config);
-
     tracing::debug!("{config:?}");
 
-    let app = Router::new().route("/", get(|| async { "it works" }));
+    let pool = config.create_pool().await?;
+
+    let app = Router::new().route("/", get(index)).with_state(pool);
 
     let address = SocketAddr::from(([0, 0, 0, 0], config.server_port));
 
@@ -22,4 +24,13 @@ async fn main() -> anyhow::Result<()> {
         .serve(app.into_make_service())
         .await
         .context("server error")
+}
+
+async fn index(State(pool): State<PgPool>) -> impl IntoResponse {
+    let (hello, world): (String, String) = sqlx::query_as("select 'hello', ' world'")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+
+    hello + &world
 }
