@@ -18,8 +18,24 @@ async fn main() -> anyhow::Result<()> {
 
     let address = SocketAddr::from(([0, 0, 0, 0], config.server_port));
 
-    axum::Server::bind(&address)
+    let (tx, rx) = tokio::sync::oneshot::channel();
+
+    let server = axum::Server::bind(&address)
         .serve(app.into_make_service())
+        .with_graceful_shutdown(async {
+            rx.await.ok();
+        });
+
+    let server_task = tokio::spawn(server);
+
+    tokio::signal::ctrl_c()
         .await
-        .context("An error ocurred while running the axum server")
+        .context("failed to listen for ctrl+c")?;
+
+    tx.send(()).expect("failed to send shutdown signal");
+
+    server_task
+        .await
+        .context("failed to join server task")?
+        .context("server error")
 }
